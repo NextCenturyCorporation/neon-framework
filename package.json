@@ -1,9 +1,11 @@
 {
   "name": "@retzloff/neon-connect",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A client library for connecting to a Neon server",
   "license": "Apache-2.0",
   "repository": "retzloff/neon-connect",
   "main": "index.js",
-  "keywords": ["neon-framework"] 
+  "keywords": [
+    "neon-framework"
+  ]
 }
