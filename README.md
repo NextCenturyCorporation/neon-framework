@@ -3,7 +3,7 @@
 [![npm (scoped)](https://img.shields.io/npm/v/@retzloff/neon-connect.svg)](https://www.npmjs.com/package/@retzloff/neon-connect)
 [![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/@retzloff/neon-connect.svg)](https://www.npmjs.com/package/@retzloff/neon-connect)
 
-Connections, yo!
+Client library for connecting to a Neon server
 
 ## Install
 
