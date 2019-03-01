@@ -3,7 +3,7 @@
   "version": "1.0.1",
   "description": "A client library for connecting to a Neon server",
   "license": "Apache-2.0",
-  "repository": "retzloff/neon-connect",
+  "repository": "NextCenturyCorporation/neon-middleware",
   "main": "dist/neon-framework.js",
   "keywords": [
     "neon-framework"
