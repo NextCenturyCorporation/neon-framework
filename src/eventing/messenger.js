@@ -48,7 +48,7 @@ neon.eventing.eventBus_ = neon.eventing.createEventBus_();
  */
 
 neon.eventing.Messenger = function() {
-    this.id_ = uuid.v4();
+    this.id_ = uuidv4();
     this.channels = [];
 };
 
