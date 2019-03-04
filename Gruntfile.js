@@ -37,7 +37,7 @@ module.exports = function(grunt) {
             "postal",
             { lodash: "_" },
             { jquery: "$" },
-            { "node-uuid": "uuid" }
+            { uuid: "uuidv4" }
           ]
         },
         objectToExport: "neon"
