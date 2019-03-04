@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/NextCenturyCorporation/neon-framework.git"
   },
-  "main": "dist/neon-framework.js",
+  "main": "dist/neon.js",
   "keywords": [
     "neon-framework"
   ],
