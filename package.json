@@ -1,5 +1,5 @@
 {
-  "name": "NextCenturyCorporation/neon-middleware",
+  "name": "neon-middleware",
   "version": "1.0.1",
   "description": "A client library for connecting to a Neon server",
   "license": "Apache-2.0",
