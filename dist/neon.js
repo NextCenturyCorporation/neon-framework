@@ -2,18 +2,18 @@
   if (root === undefined && window !== undefined) root = window;
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module unless amdModuleId is set
-    define(["log4javascript","postal","lodash","jquery","node-uuid"], function (a0,b1,c2,d3,e4) {
+    define(["log4javascript","postal","lodash","jquery","uuid"], function (a0,b1,c2,d3,e4) {
       return (root['neon'] = factory(a0,b1,c2,d3,e4));
     });
   } else if (typeof module === 'object' && module.exports) {
     // Node. Does not work with strict CommonJS, but
     // only CommonJS-like environments that support module.exports,
     // like Node.
-    module.exports = factory(require("log4javascript"),require("postal"),require("lodash"),require("jquery"),require("node-uuid"));
+    module.exports = factory(require("log4javascript"),require("postal"),require("lodash"),require("jquery"),require("uuid"));
   } else {
-    root['neon'] = factory(root["log4javascript"],root["postal"],root["lodash"],root["jquery"],root["node-uuid"]);
+    root['neon'] = factory(root["log4javascript"],root["postal"],root["lodash"],root["jquery"],root["uuid"]);
   }
-}(this, function (log4javascript, postal, _, $, uuid) {
+}(this, function (log4javascript, postal, _, $, uuidv4) {
 
 var neon = neon || {};
 neon.eventing = neon.eventing || {};
@@ -335,7 +335,7 @@ neon.eventing.eventBus_ = neon.eventing.createEventBus_();
  */
 
 neon.eventing.Messenger = function() {
-    this.id_ = uuid.v4();
+    this.id_ = uuidv4();
     this.channels = [];
 };
 
