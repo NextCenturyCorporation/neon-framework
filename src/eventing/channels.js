@@ -36,5 +36,12 @@ neon.eventing.channels = {
      * @property CONNECT_TO_HOST
      * @type {string}
      */
-    CONNECT_TO_HOST: 'connect_to_host'
+    CONNECT_TO_HOST: 'connect_to_host',
+
+
+    /**
+     * @property DATASET_UPDATED
+     * @type {string}
+     */
+    DATASET_UPDATED: 'dataset_updated'
 };

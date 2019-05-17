@@ -153,6 +153,11 @@ neon.eventing.Messenger.prototype.createGlobalChannelSubscriptions_ = function(n
         {
             channel: neon.eventing.channels.CONNECT_TO_HOST,
             callback: neonCallbacks.connectToHost
+        },
+        ,
+        {
+            channel: neon.eventing.channels.DATASET_UPDATED,
+            callback: neonCallbacks.datasetUpdated
         }
     ];
 };
