@@ -24,8 +24,8 @@
  * @private
  * @method createEventBus_
  */
-neon.eventing.createEventBus_ = function() {
-    if(neon.util.owfUtils.isRunningInOWF()) {
+neon.eventing.createEventBus_ = function () {
+    if (neon.util.owfUtils.isRunningInOWF()) {
         return new neon.eventing.owf.OWFEventBus();
     }
     return new neon.eventing.EventBus(this.id_);
@@ -47,7 +47,7 @@ neon.eventing.eventBus_ = neon.eventing.createEventBus_();
  * @constructor
  */
 
-neon.eventing.Messenger = function() {
+neon.eventing.Messenger = function () {
     this.id_ = uuidv4();
     this.channels = [];
 };
@@ -58,7 +58,7 @@ neon.eventing.Messenger = function() {
  * @param {Object} message The message to publish
  * @method publish
  */
-neon.eventing.Messenger.prototype.publish = function(channel, message) {
+neon.eventing.Messenger.prototype.publish = function (channel, message) {
     //var data = { payload: message, sender: this.id_ };
     neon.eventing.eventBus_.publish(channel, message, this.id_);
 };
@@ -71,9 +71,9 @@ neon.eventing.Messenger.prototype.publish = function(channel, message) {
  * @param {Object|String} callback.message the message that was published
  * @method subscribe
  */
-neon.eventing.Messenger.prototype.subscribe = function(channel, callback) {
+neon.eventing.Messenger.prototype.subscribe = function (channel, callback) {
     neon.eventing.eventBus_.subscribe(channel, callback, this.id_);
-    if(this.channels.indexOf(channel) < 0) {
+    if (this.channels.indexOf(channel) < 0) {
         this.channels.push(channel);
     }
 };
@@ -83,10 +83,10 @@ neon.eventing.Messenger.prototype.subscribe = function(channel, callback) {
  * @param {String} channel The channel to unsubscribe from
  * @method unsubscribe
  */
-neon.eventing.Messenger.prototype.unsubscribe = function(channel) {
+neon.eventing.Messenger.prototype.unsubscribe = function (channel) {
     neon.eventing.eventBus_.unsubscribe(channel, this.id_);
     var index = this.channels.indexOf(channel);
-    if(index >= 0) {
+    if (index >= 0) {
         this.channels.splice(index, 1);
     }
 };
@@ -95,10 +95,10 @@ neon.eventing.Messenger.prototype.unsubscribe = function(channel) {
  * Unsubscribes this messenger from all its channels, including events
  * @method unsubscribeAll
  */
-neon.eventing.Messenger.prototype.unsubscribeAll = function() {
+neon.eventing.Messenger.prototype.unsubscribeAll = function () {
     var me = this;
     var allChannels = me.channels.slice();
-    _.each(allChannels, function(channel) {
+    _.each(allChannels, function (channel) {
         me.unsubscribe(channel);
     });
 };
@@ -114,15 +114,15 @@ neon.eventing.Messenger.prototype.unsubscribeAll = function() {
  * </ul>
  * @method events
  */
-neon.eventing.Messenger.prototype.events = function(callbacks) {
+neon.eventing.Messenger.prototype.events = function (callbacks) {
     var me = this;
     var globalChannelConfigs = this.createGlobalChannelSubscriptions_(callbacks);
-    _.each(globalChannelConfigs, function(channelConfig) {
-        me.subscribe(channelConfig.channel, function(payload) {
-                if(channelConfig.callback && typeof channelConfig.callback === 'function') {
-                    channelConfig.callback(payload);
-                }
+    _.each(globalChannelConfigs, function (channelConfig) {
+        me.subscribe(channelConfig.channel, function (payload) {
+            if (channelConfig.callback && typeof channelConfig.callback === 'function') {
+                channelConfig.callback(payload);
             }
+        }
         );
     });
 };
@@ -131,15 +131,15 @@ neon.eventing.Messenger.prototype.events = function(callbacks) {
  * Unsubscribe from all events:  selection changes, filters changes, active dataset changed.
  * @method removeEvents
  */
-neon.eventing.Messenger.prototype.removeEvents = function() {
+neon.eventing.Messenger.prototype.removeEvents = function () {
     var me = this;
     var globalChannelConfigs = this.createGlobalChannelSubscriptions_({});
-    _.each(globalChannelConfigs, function(channelConfig) {
+    _.each(globalChannelConfigs, function (channelConfig) {
         me.unsubscribe(channelConfig.channel);
     });
 };
 
-neon.eventing.Messenger.prototype.createGlobalChannelSubscriptions_ = function(neonCallbacks) {
+neon.eventing.Messenger.prototype.createGlobalChannelSubscriptions_ = function (neonCallbacks) {
     // some of the callbacks may be null/undefined, which is ok since they will be ignored
     return [
         {
@@ -154,7 +154,6 @@ neon.eventing.Messenger.prototype.createGlobalChannelSubscriptions_ = function(n
             channel: neon.eventing.channels.CONNECT_TO_HOST,
             callback: neonCallbacks.connectToHost
         },
-        ,
         {
             channel: neon.eventing.channels.DATASET_UPDATED,
             callback: neonCallbacks.datasetUpdated
@@ -174,7 +173,7 @@ neon.eventing.Messenger.prototype.createGlobalChannelSubscriptions_ = function(n
  * @param {Function} errorCallback The callback to invoke if an error occurs.
  * @method addFilter
  */
-neon.eventing.Messenger.prototype.addFilter = function(id, filter, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.addFilter = function (id, filter, successCallback, errorCallback) {
     var filterKey = this.createFilterKey_(id, filter);
     return neon.util.ajaxUtils.doPostJSON(
         filterKey,
@@ -186,15 +185,15 @@ neon.eventing.Messenger.prototype.addFilter = function(id, filter, successCallba
     );
 };
 
-neon.eventing.Messenger.prototype.addFilters = function(idAndFilterList, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.addFilters = function (idAndFilterList, successCallback, errorCallback) {
     var me = this;
     var successes = [];
     var completedQueries = 0;
-    var successCB = function(returnedData) {
+    var successCB = function (returnedData) {
         successes.push(returnedData.addedFilter);
         checkIfComplete();
     };
-    var checkIfComplete = function() {
+    var checkIfComplete = function () {
         if (++completedQueries === idAndFilterList.length) {
             if (successes.length > 0) {
                 var channelCallback = me.createChannelCallback_(neon.eventing.channels.FILTERS_CHANGED, successCallback);
@@ -204,7 +203,7 @@ neon.eventing.Messenger.prototype.addFilters = function(idAndFilterList, success
             }
         }
     };
-    idAndFilterList.forEach(function(idAndFilterPair) {
+    idAndFilterList.forEach(function (idAndFilterPair) {
         var filterKey = me.createFilterKey_(idAndFilterPair[0], idAndFilterPair[1]);
         neon.util.ajaxUtils.doPostJSON(
             filterKey,
@@ -225,7 +224,7 @@ neon.eventing.Messenger.prototype.addFilters = function(idAndFilterList, success
  * @param {Function} errorCallback The callback to invoke if an error occurs.
  * @method removeFilter
  */
-neon.eventing.Messenger.prototype.removeFilter = function(id, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.removeFilter = function (id, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPost(
         neon.serviceUrl('filterservice', 'removefilter'),
         {
@@ -238,15 +237,15 @@ neon.eventing.Messenger.prototype.removeFilter = function(id, successCallback, e
     );
 };
 
-neon.eventing.Messenger.prototype.removeFilters = function(idList, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.removeFilters = function (idList, successCallback, errorCallback) {
     var me = this;
     var successes = [];
     var completedQueries = 0;
-    var successCB = function(returnedData) {
+    var successCB = function (returnedData) {
         successes.push(returnedData.removedFilter);
         checkIfComplete();
     };
-    var checkIfComplete = function() {
+    var checkIfComplete = function () {
         if (++completedQueries === idList.length) {
             if (successes.length > 0) {
                 var channelCallback = me.createChannelCallback_(neon.eventing.channels.FILTERS_CHANGED, successCallback);
@@ -256,7 +255,7 @@ neon.eventing.Messenger.prototype.removeFilters = function(idList, successCallba
             }
         }
     };
-    idList.forEach(function(id) {
+    idList.forEach(function (id) {
         neon.util.ajaxUtils.doPost(
             neon.serviceUrl('filterservice', 'removefilter'),
             {
@@ -279,7 +278,7 @@ neon.eventing.Messenger.prototype.removeFilters = function(idList, successCallba
  * @param {Function} errorCallback The callback to invoke if an error occurs.
  * @method replaceFilter
  */
-neon.eventing.Messenger.prototype.replaceFilter = function(id, filter, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.replaceFilter = function (id, filter, successCallback, errorCallback) {
     var filterKey = this.createFilterKey_(id, filter);
     return neon.util.ajaxUtils.doPostJSON(
         filterKey,
@@ -291,18 +290,18 @@ neon.eventing.Messenger.prototype.replaceFilter = function(id, filter, successCa
     );
 };
 
-neon.eventing.Messenger.prototype.replaceFilters = function(idAndFilterList, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.replaceFilters = function (idAndFilterList, successCallback, errorCallback) {
     var me = this;
     var successes = [];
     var completedQueries = 0;
-    var successCB = function(returnedData) {
+    var successCB = function (returnedData) {
         successes.push({
             added: returnedData.addedFilter,
             removed: returnedData.removedFilter
         });
         checkIfComplete();
     };
-    var checkIfComplete = function() {
+    var checkIfComplete = function () {
         if (++completedQueries === idAndFilterList.length) {
             if (successes.length > 0) {
                 var channelCallback = me.createChannelCallback_(neon.eventing.channels.FILTERS_CHANGED, successCallback);
@@ -312,7 +311,7 @@ neon.eventing.Messenger.prototype.replaceFilters = function(idAndFilterList, suc
             }
         }
     };
-    idAndFilterList.forEach(function(idAndFilterPair) {
+    idAndFilterList.forEach(function (idAndFilterPair) {
         var filterKey = me.createFilterKey_(idAndFilterPair[0], idAndFilterPair[1]);
         neon.util.ajaxUtils.doPostJSON(
             filterKey,
@@ -329,7 +328,7 @@ neon.eventing.Messenger.prototype.replaceFilters = function(idAndFilterList, suc
  * Clears all filters. This will fire a filter changed event to notify other widgets that the filters have changed.
  * @method clearFilters
  */
-neon.eventing.Messenger.prototype.clearFilters = function(successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.clearFilters = function (successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPost(
         neon.serviceUrl('filterservice', 'clearfilters'),
         {
@@ -345,7 +344,7 @@ neon.eventing.Messenger.prototype.clearFilters = function(successCallback, error
  * part of another event that may result in the widgets updating themselves
  * @method clearFiltersSilently
  */
-neon.eventing.Messenger.prototype.clearFiltersSilently = function(successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.clearFiltersSilently = function (successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPost(
         neon.serviceUrl('filterservice', 'clearfilters'),
         {
@@ -366,7 +365,7 @@ neon.eventing.Messenger.prototype.clearFiltersSilently = function(successCallbac
  * @param {Function} errorCallback The callback to invoke if an error occurs.
  * @method addSelection
  */
-neon.eventing.Messenger.prototype.addSelection = function(id, filter, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.addSelection = function (id, filter, successCallback, errorCallback) {
     var filterKey = this.createFilterKey_(id, filter);
     return neon.util.ajaxUtils.doPostJSON(
         filterKey,
@@ -387,11 +386,11 @@ neon.eventing.Messenger.prototype.addSelection = function(id, filter, successCal
  * @param {Function} errorCallback The callback to invoke if an error occurs.
  * @method removeSelection
  */
-neon.eventing.Messenger.prototype.removeSelection = function(id, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.removeSelection = function (id, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPost(
         neon.serviceUrl('selectionservice', 'removeselection'),
         {
-            success:  this.createChannelCallback_(neon.eventing.channels.SELECTION_CHANGED, successCallback),
+            success: this.createChannelCallback_(neon.eventing.channels.SELECTION_CHANGED, successCallback),
             error: errorCallback,
             global: false,
             data: id,
@@ -411,7 +410,7 @@ neon.eventing.Messenger.prototype.removeSelection = function(id, successCallback
  * @method replaceSelection
  */
 
-neon.eventing.Messenger.prototype.replaceSelection = function(id, filter, successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.replaceSelection = function (id, filter, successCallback, errorCallback) {
     var filterKey = this.createFilterKey_(id, filter);
     return neon.util.ajaxUtils.doPostJSON(
         filterKey,
@@ -429,7 +428,7 @@ neon.eventing.Messenger.prototype.replaceSelection = function(id, filter, succes
  * other widgets that the selection has changed.
  * @method clearSelection
  */
-neon.eventing.Messenger.prototype.clearSelection = function(successCallback, errorCallback) {
+neon.eventing.Messenger.prototype.clearSelection = function (successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPost(
         neon.serviceUrl('selectionservice', 'clearselection'),
         {
@@ -441,19 +440,19 @@ neon.eventing.Messenger.prototype.clearSelection = function(successCallback, err
     );
 };
 
-neon.eventing.Messenger.prototype.createFilterKey_ = function(id, filter) {
+neon.eventing.Messenger.prototype.createFilterKey_ = function (id, filter) {
     return {
         id: id,
         filter: filter
     };
 };
 
-neon.eventing.Messenger.prototype.createChannelCallback_ = function(channelName, successCallback) {
+neon.eventing.Messenger.prototype.createChannelCallback_ = function (channelName, successCallback) {
     var me = this;
-    var callback = function(results) {
+    var callback = function (results) {
         // pass the results in the callback and publish them to the channel so callers can listen
         // in either place
-        if(successCallback && typeof successCallback === 'function') {
+        if (successCallback && typeof successCallback === 'function') {
             successCallback(results);
         }
         me.publish(channelName, results || {});
