@@ -63,15 +63,33 @@ neon.query.Connection.ELASTICSEARCH = 'elasticsearch';
  * address:port pair (e.g., localhost:9300).  If no port is provided, the Neon server will assume the default port
  * for the databaseType:  27017 for Mongo, 10000 for Spark via a Hive2 Thrift connection, and 9300 for an
  * Elasticsearch transport client.
+ * @param {Boolean} ignoreUpdates [false] If false, the connection will automatically listen for updates
  */
-neon.query.Connection.prototype.connect = function(databaseType, host) {
+neon.query.Connection.prototype.connect = function(databaseType, host, ignoreUpdates) {
     this.host_ = host;
     this.databaseType_ = databaseType;
     this.messenger.publish(neon.eventing.channels.CONNECT_TO_HOST, {
         host: host,
         type: databaseType
     });
+    if (!ignoreUpdates) {
+        this.listenForDatasetUpdates();
+    }
 };
+
+/**
+ * Registers callbacks to listen for data updates against the neon server
+ * @method listenForDatasetUpdates
+ */
+neon.query.Connection.prototype.listenForDatasetUpdates = function() {
+    if (!this._dataUpdateSource) {
+        this._dataUpdateSource = new EventSource(neon.serviceUrl('dataset', 'listen'));
+        this._dataUpdateSource.addEventListener('message', (msg) => {
+            this.messenger.publish(neon.eventing.channels.DATASET_UPDATED, { message: msg })
+        });
+    }
+    return this._dataUpdateSource;
+}
 
 /**
  * Executes the specified query and fires the callback when complete.
