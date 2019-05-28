@@ -98,7 +98,7 @@ neon.eventing.Messenger.prototype.unsubscribe = function (channel) {
 neon.eventing.Messenger.prototype.unsubscribeAll = function () {
     var me = this;
     var allChannels = me.channels.slice();
-    _.each(allChannels, function (channel) {
+    allChannels.forEach(function (channel) {
         me.unsubscribe(channel);
     });
 };
@@ -117,7 +117,7 @@ neon.eventing.Messenger.prototype.unsubscribeAll = function () {
 neon.eventing.Messenger.prototype.events = function (callbacks) {
     var me = this;
     var globalChannelConfigs = this.createGlobalChannelSubscriptions_(callbacks);
-    _.each(globalChannelConfigs, function (channelConfig) {
+    globalChannelConfigs.forEach(function (channelConfig) {
         me.subscribe(channelConfig.channel, function (payload) {
             if (channelConfig.callback && typeof channelConfig.callback === 'function') {
                 channelConfig.callback(payload);
@@ -134,7 +134,7 @@ neon.eventing.Messenger.prototype.events = function (callbacks) {
 neon.eventing.Messenger.prototype.removeEvents = function () {
     var me = this;
     var globalChannelConfigs = this.createGlobalChannelSubscriptions_({});
-    _.each(globalChannelConfigs, function (channelConfig) {
+    globalChannelConfigs.forEach(function (channelConfig) {
         me.unsubscribe(channelConfig.channel);
     });
 };

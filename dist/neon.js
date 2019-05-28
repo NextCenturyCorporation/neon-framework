@@ -2,18 +2,18 @@
   if (root === undefined && window !== undefined) root = window;
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as an anonymous module unless amdModuleId is set
-    define(["log4javascript","postal","lodash","jquery","uuid"], function (a0,b1,c2,d3,e4) {
-      return (root['neon'] = factory(a0,b1,c2,d3,e4));
+    define(["postal","jquery","uuid"], function (a0,b1,c2) {
+      return (root['neon'] = factory(a0,b1,c2));
     });
   } else if (typeof module === 'object' && module.exports) {
     // Node. Does not work with strict CommonJS, but
     // only CommonJS-like environments that support module.exports,
     // like Node.
-    module.exports = factory(require("log4javascript"),require("postal"),require("lodash"),require("jquery"),require("uuid"));
+    module.exports = factory(require("postal"),require("jquery"),require("uuid"));
   } else {
-    root['neon'] = factory(root["log4javascript"],root["postal"],root["lodash"],root["jquery"],root["uuid"]);
+    root['neon'] = factory(root["postal"],root["jquery"],root["uuid"]);
   }
-}(this, function (log4javascript, postal, _, $, uuidv4) {
+}(this, function (postal, $, uuidv4) {
 
 var neon = neon || {};
 neon.eventing = neon.eventing || {};
@@ -22,67 +22,6 @@ neon.query = neon.query || {};
 neon.query.connection = neon.query.connection || {};
 neon.util = neon.util || {};
 neon.widget = neon.widget || {};
-
-/**
- * Provides utility methods for working with a log4javascript logger
- * @class neon.util.loggerUtils
- * @static
- */
-
-neon.util.loggerUtils = (function() {
-    var popupAppender = new log4javascript.PopUpAppender();
-    var browserConsoleAppender = new log4javascript.BrowserConsoleAppender();
-    var layout = new log4javascript.PatternLayout("%d{HH:mm:ss} %-5p - %m%n");
-
-    popupAppender.setLayout(layout);
-    browserConsoleAppender.setThreshold(log4javascript.Level.ALL);
-
-    /**
-     * Sets whether or not the popup appender should be used for the logger
-     * @method usePopupAppender
-     * @param {Object} logger The log4javascript logger from which to attach/detach the popup appender
-     */
-    function usePopupAppender(logger) {
-        logger.addAppender(popupAppender);
-    }
-
-    /**
-     * Sets whether or not the browser console appender should be used for the logger
-     * @method useBrowserConsoleAppender
-     * @param {Object} logger The log4javascript logger from which to attach/detach the popup appender
-     */
-    function useBrowserConsoleAppender(logger) {
-        logger.addAppender(browserConsoleAppender);
-    }
-
-    /**
-     * Gets a global logger (with no name) that can be used by different classes. Any configuration changes to the
-     * global logger will affect all usages of it.
-     * @method getGlobalLogger
-     * @return {Object} The global logger
-     */
-    function getGlobablLogger() {
-        return log4javascript.getLogger("[global]");
-    }
-
-    /**
-     * Creates a log4javascript logger
-     * @method getLogger
-     * @param {String} name The name of the logger
-     * @return {Object} a log4javascript logger
-     *
-     */
-    function getLogger(name) {
-        return log4javascript.getLogger(name);
-    }
-
-    return {
-        usePopupAppender: usePopupAppender,
-        useBrowserConsoleAppender: useBrowserConsoleAppender,
-        getGlobalLogger: getGlobablLogger,
-        getLogger: getLogger
-    };
-})();
 
 /**
  * Utility methods for working with OWF
@@ -391,7 +330,7 @@ neon.eventing.Messenger.prototype.unsubscribe = function (channel) {
 neon.eventing.Messenger.prototype.unsubscribeAll = function () {
     var me = this;
     var allChannels = me.channels.slice();
-    _.each(allChannels, function (channel) {
+    allChannels.forEach(function (channel) {
         me.unsubscribe(channel);
     });
 };
@@ -410,7 +349,7 @@ neon.eventing.Messenger.prototype.unsubscribeAll = function () {
 neon.eventing.Messenger.prototype.events = function (callbacks) {
     var me = this;
     var globalChannelConfigs = this.createGlobalChannelSubscriptions_(callbacks);
-    _.each(globalChannelConfigs, function (channelConfig) {
+    globalChannelConfigs.forEach(function (channelConfig) {
         me.subscribe(channelConfig.channel, function (payload) {
             if (channelConfig.callback && typeof channelConfig.callback === 'function') {
                 channelConfig.callback(payload);
@@ -427,7 +366,7 @@ neon.eventing.Messenger.prototype.events = function (callbacks) {
 neon.eventing.Messenger.prototype.removeEvents = function () {
     var me = this;
     var globalChannelConfigs = this.createGlobalChannelSubscriptions_({});
-    _.each(globalChannelConfigs, function (channelConfig) {
+    globalChannelConfigs.forEach(function (channelConfig) {
         me.unsubscribe(channelConfig.channel);
     });
 };
@@ -2046,13 +1985,10 @@ neon.ready = function(functionToRun) {
  * @static
  */
 
-neon.util.ajaxUtils = (function() {
+neon.util.ajaxUtils = (function () {
     var overlayId = 'neon-overlay';
-    var logger = neon.util.loggerUtils.getGlobalLogger();
-    var errorLogger = neon.util.loggerUtils.getLogger('neon.util.ajaxUtils.error');
 
-    neon.util.loggerUtils.useBrowserConsoleAppender(errorLogger);
-    $(function() {
+    $(function () {
         //document ready is used here so that this call is not overwritten by other jquery includes
         useDefaultStartStopCallbacks();
     });
@@ -2094,7 +2030,7 @@ neon.util.ajaxUtils = (function() {
     }
 
     function logRequest(params) {
-        logger.debug('Making', params.type, 'request to URL', params.url, 'with data', params.data);
+        console.debug('Making', params.type, 'request to URL', params.url, 'with data', params.data);
     }
 
     /**
@@ -2119,11 +2055,15 @@ neon.util.ajaxUtils = (function() {
      */
     function doPostJSON(object, url, opts) {
         var data = JSON.stringify(object);
-        var fullOpts = _.extend({}, opts, {
-            data: data,
-            contentType: 'application/json',
-            responseType: 'json'
-        });
+        var fullOpts = {};
+        for (const k in opts) {
+            if (opts.hasOwnProperty(k)) {
+                fullOpts[k] = opts[k];
+            }
+        }
+        fullOpts.data = data;
+        fullOpts.contentType = 'application/json';
+        fullOpts.responseType = 'json';
         return doPost(url, fullOpts);
     }
 
@@ -2140,8 +2080,8 @@ neon.util.ajaxUtils = (function() {
     function doPostBinary(binary, url, successCallback, errorCallback) {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', url);
-        xhr.onload = function() {
-            if(xhr.status === 200) {
+        xhr.onload = function () {
+            if (xhr.status === 200) {
                 successCallback(xhr.response);
             } else {
                 errorCallback(xhr.response);
@@ -2221,7 +2161,7 @@ neon.util.ajaxUtils = (function() {
  * @param {Object} xhr The jquery xhr being wrapped
  * @constructor
  */
-neon.util.AjaxRequest = function(xhr) {
+neon.util.AjaxRequest = function (xhr) {
     // this really just wraps a jquery xhr
     this.xhr = xhr;
 };
@@ -2231,7 +2171,7 @@ neon.util.AjaxRequest = function(xhr) {
  * 0.
  * @method abort
  */
-neon.util.AjaxRequest.prototype.abort = function() {
+neon.util.AjaxRequest.prototype.abort = function () {
     this.xhr.abort();
     return this;
 };
@@ -2242,7 +2182,7 @@ neon.util.AjaxRequest.prototype.abort = function() {
  * @method done
  * @param {Function} callback
  */
-neon.util.AjaxRequest.prototype.done = function(callback) {
+neon.util.AjaxRequest.prototype.done = function (callback) {
     this.xhr.done(callback);
     return this;
 };
@@ -2253,7 +2193,7 @@ neon.util.AjaxRequest.prototype.done = function(callback) {
  * @method fail
  * @param {Function} callback
  */
-neon.util.AjaxRequest.prototype.fail = function(callback) {
+neon.util.AjaxRequest.prototype.fail = function (callback) {
     this.xhr.fail(callback);
     return this;
 };
@@ -2264,7 +2204,7 @@ neon.util.AjaxRequest.prototype.fail = function(callback) {
  * @method always
  * @param {Function} callback
  */
-neon.util.AjaxRequest.prototype.always = function(callback) {
+neon.util.AjaxRequest.prototype.always = function (callback) {
     this.xhr.always(callback);
     return this;
 };

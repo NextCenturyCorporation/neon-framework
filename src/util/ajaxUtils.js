@@ -20,13 +20,10 @@
  * @static
  */
 
-neon.util.ajaxUtils = (function() {
+neon.util.ajaxUtils = (function () {
     var overlayId = 'neon-overlay';
-    var logger = neon.util.loggerUtils.getGlobalLogger();
-    var errorLogger = neon.util.loggerUtils.getLogger('neon.util.ajaxUtils.error');
 
-    neon.util.loggerUtils.useBrowserConsoleAppender(errorLogger);
-    $(function() {
+    $(function () {
         //document ready is used here so that this call is not overwritten by other jquery includes
         useDefaultStartStopCallbacks();
     });
@@ -68,7 +65,7 @@ neon.util.ajaxUtils = (function() {
     }
 
     function logRequest(params) {
-        logger.debug('Making', params.type, 'request to URL', params.url, 'with data', params.data);
+        console.debug('Making', params.type, 'request to URL', params.url, 'with data', params.data);
     }
 
     /**
@@ -93,11 +90,15 @@ neon.util.ajaxUtils = (function() {
      */
     function doPostJSON(object, url, opts) {
         var data = JSON.stringify(object);
-        var fullOpts = _.extend({}, opts, {
-            data: data,
-            contentType: 'application/json',
-            responseType: 'json'
-        });
+        var fullOpts = {};
+        for (const k in opts) {
+            if (opts.hasOwnProperty(k)) {
+                fullOpts[k] = opts[k];
+            }
+        }
+        fullOpts.data = data;
+        fullOpts.contentType = 'application/json';
+        fullOpts.responseType = 'json';
         return doPost(url, fullOpts);
     }
 
@@ -114,8 +115,8 @@ neon.util.ajaxUtils = (function() {
     function doPostBinary(binary, url, successCallback, errorCallback) {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', url);
-        xhr.onload = function() {
-            if(xhr.status === 200) {
+        xhr.onload = function () {
+            if (xhr.status === 200) {
                 successCallback(xhr.response);
             } else {
                 errorCallback(xhr.response);
@@ -195,7 +196,7 @@ neon.util.ajaxUtils = (function() {
  * @param {Object} xhr The jquery xhr being wrapped
  * @constructor
  */
-neon.util.AjaxRequest = function(xhr) {
+neon.util.AjaxRequest = function (xhr) {
     // this really just wraps a jquery xhr
     this.xhr = xhr;
 };
@@ -205,7 +206,7 @@ neon.util.AjaxRequest = function(xhr) {
  * 0.
  * @method abort
  */
-neon.util.AjaxRequest.prototype.abort = function() {
+neon.util.AjaxRequest.prototype.abort = function () {
     this.xhr.abort();
     return this;
 };
@@ -216,7 +217,7 @@ neon.util.AjaxRequest.prototype.abort = function() {
  * @method done
  * @param {Function} callback
  */
-neon.util.AjaxRequest.prototype.done = function(callback) {
+neon.util.AjaxRequest.prototype.done = function (callback) {
     this.xhr.done(callback);
     return this;
 };
@@ -227,7 +228,7 @@ neon.util.AjaxRequest.prototype.done = function(callback) {
  * @method fail
  * @param {Function} callback
  */
-neon.util.AjaxRequest.prototype.fail = function(callback) {
+neon.util.AjaxRequest.prototype.fail = function (callback) {
     this.xhr.fail(callback);
     return this;
 };
@@ -238,7 +239,7 @@ neon.util.AjaxRequest.prototype.fail = function(callback) {
  * @method always
  * @param {Function} callback
  */
-neon.util.AjaxRequest.prototype.always = function(callback) {
+neon.util.AjaxRequest.prototype.always = function (callback) {
     this.xhr.always(callback);
     return this;
 };
