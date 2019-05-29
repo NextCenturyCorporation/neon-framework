@@ -474,7 +474,7 @@ neon.query.Connection.prototype.deleteState = function (stateName, successCallba
  */
 neon.query.Connection.prototype.listStates = function (limit, offset, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
-        neon.serviceUrl("stateservice", "liststates", {limit, offset}), {
+        neon.serviceUrl("stateservice", "liststates", "limit=" + limit + "&offset=" + offset), {
             success: successCallback,
             error: errorCallback,
             responseType: "json"
