@@ -1,4 +1,4 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON("package.json"),
@@ -33,11 +33,9 @@ module.exports = function(grunt) {
       options: {
         deps: {
           default: [
-            "log4javascript",
             "postal",
-            { lodash: "_" },
-            { jquery: "$" },
-            { uuid: "uuidv4" }
+            {jquery: "$"},
+            {uuid: "uuidv4"}
           ]
         },
         objectToExport: "neon"
