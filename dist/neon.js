@@ -766,7 +766,7 @@ neon.eventing.Messenger.prototype.createChannelCallback_ = function (channelName
  *     connection.executeQuery(query2, callback);
  * @constructor
  */
-neon.query.Connection = function() {
+neon.query.Connection = function () {
     this.host_ = undefined;
     this.databaseType_ = undefined;
     this.messenger = new neon.eventing.Messenger();
@@ -804,7 +804,7 @@ neon.query.Connection.ELASTICSEARCH = 'elasticsearch';
  * Elasticsearch transport client.
  * @param {Boolean} ignoreUpdates [false] If false, the connection will automatically listen for updates
  */
-neon.query.Connection.prototype.connect = function(databaseType, host, ignoreUpdates) {
+neon.query.Connection.prototype.connect = function (databaseType, host, ignoreUpdates) {
     this.host_ = host;
     this.databaseType_ = databaseType;
     this.messenger.publish(neon.eventing.channels.CONNECT_TO_HOST, {
@@ -820,11 +820,11 @@ neon.query.Connection.prototype.connect = function(databaseType, host, ignoreUpd
  * Registers callbacks to listen for data updates against the neon server
  * @method listenForDatasetUpdates
  */
-neon.query.Connection.prototype.listenForDatasetUpdates = function() {
+neon.query.Connection.prototype.listenForDatasetUpdates = function () {
     if (!this._dataUpdateSource) {
         this._dataUpdateSource = new EventSource(neon.serviceUrl('dataset', 'listen'));
         this._dataUpdateSource.addEventListener('message', (msg) => {
-            this.messenger.publish(neon.eventing.channels.DATASET_UPDATED, { message: msg })
+            this.messenger.publish(neon.eventing.channels.DATASET_UPDATED, {message: msg})
         });
     }
     return this._dataUpdateSource;
@@ -838,7 +838,7 @@ neon.query.Connection.prototype.listenForDatasetUpdates = function() {
  * @param {Function} [errorCallback] The optional callback when an error occurs. This is a 3 parameter function that contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.executeQuery = function(query, successCallback, errorCallback) {
+neon.query.Connection.prototype.executeQuery = function (query, successCallback, errorCallback) {
     return this.executeQueryService_(query, successCallback, errorCallback, 'query');
 };
 
@@ -852,7 +852,7 @@ neon.query.Connection.prototype.executeQuery = function(query, successCallback, 
  * contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.executeQueryGroup = function(queryGroup, successCallback, errorCallback) {
+neon.query.Connection.prototype.executeQueryGroup = function (queryGroup, successCallback, errorCallback) {
     return this.executeQueryService_(queryGroup, successCallback, errorCallback, 'querygroup');
 };
 
@@ -869,7 +869,7 @@ neon.query.Connection.prototype.executeQueryGroup = function(queryGroup, success
  * function that contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.executeArrayCountQuery = function(databaseName, tableName, fieldName, limit, whereClause, successCallback, errorCallback) {
+neon.query.Connection.prototype.executeArrayCountQuery = function (databaseName, tableName, fieldName, limit, whereClause, successCallback, errorCallback) {
     var serviceName = encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_) + '/' + encodeURIComponent(databaseName) + '/' + encodeURIComponent(tableName) + '/' + encodeURIComponent(fieldName);
     var serviceUrl = neon.serviceUrl('queryservice/arraycounts', serviceName, (limit ? 'limit=' + limit : ''));
     var options = {
@@ -880,20 +880,20 @@ neon.query.Connection.prototype.executeArrayCountQuery = function(databaseName, 
     return neon.util.ajaxUtils.doPostJSON(whereClause, serviceUrl, options);
 };
 
-neon.query.Connection.prototype.executeQueryService_ = function(query, successCallback, errorCallback, serviceName) {
+neon.query.Connection.prototype.executeQueryService_ = function (query, successCallback, errorCallback, serviceName) {
     var opts = [];
-    if(query.ignoreFilters_) {
+    if (query.ignoreFilters_) {
         opts.push("ignoreFilters=true");
-    } else if(query.ignoredFilterIds_) {
+    } else if (query.ignoredFilterIds_) {
         var filterIds = [];
-        query.ignoredFilterIds_.forEach(function(id) {
+        query.ignoredFilterIds_.forEach(function (id) {
             filterIds.push("ignoredFilterIds=" + encodeURIComponent(id));
         });
-        if(filterIds.length) {
+        if (filterIds.length) {
             opts.push(filterIds.join("&"));
         }
     }
-    if(query.selectionOnly_) {
+    if (query.selectionOnly_) {
         opts.push("selectionOnly=true");
     }
     return neon.util.ajaxUtils.doPostJSON(
@@ -916,7 +916,7 @@ neon.query.Connection.prototype.executeQueryService_ = function(query, successCa
  * response as a parameter.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.executeExport = function(query, successCallback, errorCallback, fileType) {
+neon.query.Connection.prototype.executeExport = function (query, successCallback, errorCallback, fileType) {
     query.fileType = fileType;
     return neon.util.ajaxUtils.doPostJSON(
         query,
@@ -937,7 +937,7 @@ neon.query.Connection.prototype.executeExport = function(query, successCallback,
  * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
  * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeUploadFile = function(data, successCallback, errorCallback, host, databaseType) {
+neon.query.Connection.prototype.executeUploadFile = function (data, successCallback, errorCallback, host, databaseType) {
     neon.util.ajaxUtils.doPostBinary(data, neon.serviceUrl('importservice', 'upload/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_), ''),
         successCallback, errorCallback);
 };
@@ -950,7 +950,7 @@ neon.query.Connection.prototype.executeUploadFile = function(data, successCallba
  * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
  * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeCheckTypeGuesses = function(uuid, successCallback, host, databaseType) {
+neon.query.Connection.prototype.executeCheckTypeGuesses = function (uuid, successCallback, host, databaseType) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('importservice', 'guesses/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_) + '/' + encodeURIComponent(uuid), ''), {
             success: successCallback
@@ -968,7 +968,7 @@ neon.query.Connection.prototype.executeCheckTypeGuesses = function(uuid, success
  * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
  * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeLoadFileIntoDB = function(data, uuid, successCallback, errorCallback, host, databaseType) {
+neon.query.Connection.prototype.executeLoadFileIntoDB = function (data, uuid, successCallback, errorCallback, host, databaseType) {
     neon.util.ajaxUtils.doPostJSON(data, neon.serviceUrl('importservice', 'convert/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_) +
         '/' + encodeURIComponent(uuid), ''), {
             success: successCallback,
@@ -985,7 +985,7 @@ neon.query.Connection.prototype.executeLoadFileIntoDB = function(data, uuid, suc
  * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
  * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeCheckImportProgress = function(uuid, successCallback, host, databaseType) {
+neon.query.Connection.prototype.executeCheckImportProgress = function (uuid, successCallback, host, databaseType) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('importservice', 'progress/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_) + '/' + encodeURIComponent(uuid), ''), {
             success: successCallback
@@ -1003,7 +1003,7 @@ neon.query.Connection.prototype.executeCheckImportProgress = function(uuid, succ
  * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
  * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeRemoveDataset = function(user, data, successCallback, errorCallback, host, databaseType) {
+neon.query.Connection.prototype.executeRemoveDataset = function (user, data, successCallback, errorCallback, host, databaseType) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('importservice', 'drop/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_) + '?user=' + encodeURIComponent(user) +
             '&data=' + encodeURIComponent(data), ''), {
@@ -1021,7 +1021,7 @@ neon.query.Connection.prototype.executeRemoveDataset = function(user, data, succ
  * @param {Function} errorCallback The function to call when an error occurs. This function takes the server's response as a parameter.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getDatabaseNames = function(successCallback, errorCallback) {
+neon.query.Connection.prototype.getDatabaseNames = function (successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('queryservice', 'databasenames/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_)), {
             success: successCallback,
@@ -1038,7 +1038,7 @@ neon.query.Connection.prototype.getDatabaseNames = function(successCallback, err
  * @param {Function} successCallback The callback that contains the table names in an array.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getTableNames = function(databaseName, successCallback) {
+neon.query.Connection.prototype.getTableNames = function (databaseName, successCallback) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('queryservice', 'tablenames/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_) + '/' + encodeURIComponent(databaseName)), {
             success: successCallback,
@@ -1057,10 +1057,10 @@ neon.query.Connection.prototype.getTableNames = function(databaseName, successCa
  * function that contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getFieldNames = function(databaseName, tableName, successCallback, errorCallback) {
+neon.query.Connection.prototype.getFieldNames = function (databaseName, tableName, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('queryservice', 'fields/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_) +
-          '/' + encodeURIComponent(databaseName) + '/' + encodeURIComponent(tableName)), {
+            '/' + encodeURIComponent(databaseName) + '/' + encodeURIComponent(tableName)), {
             success: successCallback,
             error: errorCallback,
             responseType: 'json'
@@ -1077,7 +1077,7 @@ neon.query.Connection.prototype.getFieldNames = function(databaseName, tableName
  * function that contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getTableNamesAndFieldNames = function(databaseName, successCallback, errorCallback) {
+neon.query.Connection.prototype.getTableNamesAndFieldNames = function (databaseName, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('queryservice', 'tablesandfields/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_) + '/' + encodeURIComponent(databaseName)), {
             success: successCallback,
@@ -1094,7 +1094,7 @@ neon.query.Connection.prototype.getTableNamesAndFieldNames = function(databaseNa
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getTranslationCache = function(successCallback, errorCallback) {
+neon.query.Connection.prototype.getTranslationCache = function (successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl("translationservice", "getcache"), {
             success: successCallback,
@@ -1112,7 +1112,7 @@ neon.query.Connection.prototype.getTranslationCache = function(successCallback, 
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.setTranslationCache = function(cache, successCallback, errorCallback) {
+neon.query.Connection.prototype.setTranslationCache = function (cache, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPostJSON(
         cache,
         neon.serviceUrl("translationservice", "setcache"), {
@@ -1134,10 +1134,10 @@ neon.query.Connection.prototype.setTranslationCache = function(cache, successCal
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.saveState = function(stateParams, successCallback, errorCallback) {
+neon.query.Connection.prototype.saveState = function (stateParams, successCallback, errorCallback) {
     var opts = "";
 
-    if(stateParams.stateName) {
+    if (stateParams.stateName) {
         opts = "stateName=" + stateParams.stateName;
         delete stateParams.stateName;
     }
@@ -1163,15 +1163,15 @@ neon.query.Connection.prototype.saveState = function(stateParams, successCallbac
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.loadState = function(stateParams, successCallback, errorCallback) {
+neon.query.Connection.prototype.loadState = function (stateParams, successCallback, errorCallback) {
     var opts = [];
-    if(stateParams.stateName) {
+    if (stateParams.stateName) {
         opts.push("stateName=" + stateParams.stateName);
     } else {
-        if(stateParams.dashboardStateId) {
+        if (stateParams.dashboardStateId) {
             opts.push("dashboardStateId=" + stateParams.dashboardStateId);
         }
-        if(stateParams.filterStateId) {
+        if (stateParams.filterStateId) {
             opts.push("filterStateId=" + stateParams.filterStateId);
         }
     }
@@ -1192,7 +1192,7 @@ neon.query.Connection.prototype.loadState = function(stateParams, successCallbac
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.deleteState = function(stateName, successCallback, errorCallback) {
+neon.query.Connection.prototype.deleteState = function (stateName, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doDelete(
         neon.serviceUrl("stateservice", "deletestate/" + stateName), {
             success: successCallback,
@@ -1203,15 +1203,17 @@ neon.query.Connection.prototype.deleteState = function(stateName, successCallbac
 };
 
 /**
- * Requests to retrieve all the states names.
- * @method getAllStateNames
+ * Requests to retrieve states.
+ * @method listStates
+ * @param {Number} limit
+ * @param {Number} offset
  * @param {Function} successCallback
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getAllStateNames = function(successCallback, errorCallback) {
+neon.query.Connection.prototype.listStates = function (limit, offset, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
-        neon.serviceUrl("stateservice", "allstatesnames"), {
+        neon.serviceUrl("stateservice", "liststates", "limit=" + limit + "&offset=" + offset), {
             success: successCallback,
             error: errorCallback,
             responseType: "json"
@@ -1229,7 +1231,7 @@ neon.query.Connection.prototype.getAllStateNames = function(successCallback, err
  * @param {Function} errorCallback
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getStateName = function(stateParams, successCallback, errorCallback) {
+neon.query.Connection.prototype.getStateName = function (stateParams, successCallback, errorCallback) {
     var opts = [];
     opts.push("dashboardStateId=" + stateParams.dashboardStateId);
     opts.push("filterStateId=" + stateParams.filterStateId);
@@ -1252,10 +1254,10 @@ neon.query.Connection.prototype.getStateName = function(stateParams, successCall
  * function that contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getFieldTypes = function(databaseName, tableName, successCallback, errorCallback) {
+neon.query.Connection.prototype.getFieldTypes = function (databaseName, tableName, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doGet(
         neon.serviceUrl('queryservice', 'fields/types/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_) +
-          '/' + encodeURIComponent(databaseName) + '/' + encodeURIComponent(tableName)), {
+            '/' + encodeURIComponent(databaseName) + '/' + encodeURIComponent(tableName)), {
             success: successCallback,
             error: errorCallback,
             responseType: 'json'
@@ -1273,7 +1275,7 @@ neon.query.Connection.prototype.getFieldTypes = function(databaseName, tableName
  * function that contains the xhr, a short error status and the full error message.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.getFieldTypesForGroup = function(databaseToTableNames, successCallback, errorCallback) {
+neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTableNames, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPostJSON(
         databaseToTableNames,
         neon.serviceUrl('queryservice', 'fields/types/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_)), {
