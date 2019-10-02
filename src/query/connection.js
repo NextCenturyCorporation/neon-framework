@@ -170,7 +170,7 @@ neon.query.Connection.prototype.executeQueryService_ = function (query, successC
 /**
  * Executes the specified export request and fires the callback when complete.
  * @method executeExport
- * @param {neon.query.Query} query the query to export data for
+ * @param {neon.query.ExportQuery} exportQuery the query to export data for
  * @param {Function} successCallback The callback to fire when the export request successfully completes. Takes
  * a JSON object with the export URL stored in it's data field as a parameter.
  * @param {Function} [errorCallback] The optional callback when an error occurs. This function takes the server's
