@@ -170,18 +170,19 @@ neon.query.Connection.prototype.executeQueryService_ = function (query, successC
 /**
  * Executes the specified export request and fires the callback when complete.
  * @method executeExport
- * @param {neon.query.Query} query the query to export data for
+ * @param {neon.query.ExportQuery} exportQuery the query to export data for
  * @param {Function} successCallback The callback to fire when the export request successfully completes. Takes
  * a JSON object with the export URL stored in it's data field as a parameter.
  * @param {Function} [errorCallback] The optional callback when an error occurs. This function takes the server's
  * response as a parameter.
+ * @param {String} fileType The export file type. This determines the service end point used for exporting
+ * to this file type
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-neon.query.Connection.prototype.executeExport = function (query, successCallback, errorCallback, fileType) {
-    query.fileType = fileType;
+neon.query.Connection.prototype.executeExport = function (exportQuery, successCallback, errorCallback, fileType) {
     return neon.util.ajaxUtils.doPostJSON(
-        query,
-        neon.serviceUrl('exportservice', 'export/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_), ''),
+        exportQuery,
+        neon.serviceUrl('exportservice', fileType, ''),
         {
             success: successCallback,
             error: errorCallback
