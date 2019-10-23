@@ -1227,6 +1227,19 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
 };
 
 /**
+ * Returns the server status.
+ */
+neon.query.getServerStatus = function (successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doGet(
+        neon.serviceUrl('admin', 'status'), {
+            success: successCallback,
+            error: errorCallback,
+            responseType: 'json'
+        }
+    );
+};
+
+/**
  * Represents export parameters to be used when exporting data from a datasource to a file
  * @class neon.query.exportQuery
  * @constructor

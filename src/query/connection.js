@@ -547,3 +547,16 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
         }
     );
 };
+
+/**
+ * Returns the server status.
+ */
+neon.query.getServerStatus = function (successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doGet(
+        neon.serviceUrl('admin', 'status'), {
+            success: successCallback,
+            error: errorCallback,
+            responseType: 'json'
+        }
+    );
+};
