@@ -1226,6 +1226,27 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
     );
 };
 
+
+/**
+ * Executes the specified export request and fires the callback when complete.
+ * @method uploadData
+ * @param {neon.query.uploadData} uploadQuery the query to export data for
+ * @param {Function} successCallback The callback to fire when the export request successfully completes. Takes
+ * a JSON object with the export URL stored in it's data field as a parameter.
+ * @param {Function} [errorCallback] The optional callback when an error occurs. This function takes the server's
+ * response as a parameter.
+ * @return {neon.util.AjaxRequest} The xhr request object
+ */
+neon.query.Connection.prototype.uploadData = function (uploadQuery, database, table, source, successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doPostJSON(
+        uploadQuery,
+        neon.serviceUrl('uploadData', database, table, source),
+        {
+            success: successCallback,
+            error: errorCallback
+        }
+    );
+};
 /**
  * Represents export parameters to be used when exporting data from a datasource to a file
  * @class neon.query.exportQuery
@@ -1968,6 +1989,31 @@ neon.query.Transform = function(name) {
  * @method params
  */
 neon.query.Transform.prototype.params = function(params) {
+    this.params = params;
+    return this;
+};
+
+/**
+ * Creates a upload that can be applied to a query.
+ * @param database The database of where the new data will be upload to.
+ * @param table The table of where the new data will be upload to.
+ * @param source The source content of the new data.
+ * @class neon.query.Upload
+ * @constructor
+ */
+neon.query.Upload = function(database, table, source) {
+    this.database = database;
+    this.table = table;
+    this.source = source;
+};
+
+/**
+ * Adds parameters to the upload
+ * @param {Object} params Parameters to set on the upload.
+ * @return {neon.query.Upload} This upload object
+ * @method params
+ */
+neon.query.Upload.prototype.params = function(params) {
     this.params = params;
     return this;
 };

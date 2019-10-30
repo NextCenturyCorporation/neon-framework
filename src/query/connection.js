@@ -547,3 +547,25 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
         }
     );
 };
+
+
+/**
+ * Executes the specified export request and fires the callback when complete.
+ * @method uploadData
+ * @param {neon.query.uploadData} uploadQuery the query to export data for
+ * @param {Function} successCallback The callback to fire when the export request successfully completes. Takes
+ * a JSON object with the export URL stored in it's data field as a parameter.
+ * @param {Function} [errorCallback] The optional callback when an error occurs. This function takes the server's
+ * response as a parameter.
+ * @return {neon.util.AjaxRequest} The xhr request object
+ */
+neon.query.Connection.prototype.uploadData = function (uploadQuery, database, table, source, successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doPostJSON(
+        uploadQuery,
+        neon.serviceUrl('uploadData', database, table, source),
+        {
+            success: successCallback,
+            error: errorCallback
+        }
+    );
+};
