@@ -16,14 +16,18 @@
 
 /**
  * Represents export parameters to be used when exporting data from a datasource to a file
+ * @param hostName the host name where the datastore exists in
+ * @param dataStoreType the data store type (elastic search, sql, etc)
+ * @param fileName the name of the file where the data is exported to.
+ * @param query query for pulling the data to export
+ * @param fieldNamePrettyNamePairs mapping of actual field names to user friendly field names
  * @class neon.query.exportQuery
  * @constructor
  */
-neon.query.ExportQuery = function() {
-
-    this.fileName = undefined;
-    this.dataStoreType = undefined;
-    this.hostName = undefined;
+neon.query.ExportQuery = function(hostName, dataStoreType, fileName, query, fieldNamePrettyNamePairs) {
+    this.hostName = hostName;
+    this.dataStoreType = dataStoreType;
+    this.fileName = fileName;
     this.query = new neon.query.Query();
-    this.fieldNamePrettyNamePairs = null;
+    this.fieldNamePrettyNamePairs = fieldNamePrettyNamePairs;
 };

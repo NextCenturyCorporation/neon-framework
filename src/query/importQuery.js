@@ -15,26 +15,30 @@
  */
 
 /**
- * Creates a upload that can be applied to a query.
- * @param database The database of where the new data will be upload to.
- * @param table The table of where the new data will be upload to.
+ * Creates an import that can be applied to a query.
+ * @param hostName the host name where the datastore exists in
+ * @param dataStoreType the data store type (elastic search, sql, etc)
+ * @param database The database of where the new data will be imported in to.
+ * @param table The table of where the new data will be imported in to.
  * @param source The source content of the new data.
- * @class neon.query.Upload
+ * @class neon.query.ImportQuery
  * @constructor
  */
-neon.query.Upload = function(database, table, source) {
+neon.query.ImportQuery = function(hostName, dataStoreType, database, table, source) {
+    this.hostName = hostName;
+    this.dataStoreType = dataStoreType;
     this.database = database;
     this.table = table;
     this.source = source;
 };
 
 /**
- * Adds parameters to the upload
- * @param {Object} params Parameters to set on the upload.
- * @return {neon.query.Upload} This upload object
+ * Adds parameters to the import
+ * @param {Object} params Parameters to set on the import.
+ * @return {neon.query.ImportQuery} This import object
  * @method params
  */
-neon.query.Upload.prototype.params = function(params) {
+neon.query.ImportQuery.prototype.params = function(params) {
     this.params = params;
     return this;
 };

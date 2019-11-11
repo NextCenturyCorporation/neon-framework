@@ -192,16 +192,25 @@ neon.query.Connection.prototype.executeExport = function (exportQuery, successCa
 
 /**
  * Sends a file to be imported into a database and fires the callback when complete.
- * @method executeUploadFile
- * @param {FormData} data A FormData object containing the file to upload, as well as its type and a username and name of the database to upload it to.
+ * @method executeImport
+ * @param {neon.query.ImportQuery} importQuery contains source data and location where the data is imported to (database and table) 
  * @param {Function} successCallback The function to call when the request successfully completes. This function takes the server's response as a parameter.
  * @param {Function} errorCallback The function to call when an error occurs. This function takes the server's response as a parameter.
- * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
- * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeUploadFile = function (data, successCallback, errorCallback, host, databaseType) {
-    neon.util.ajaxUtils.doPostBinary(data, neon.serviceUrl('importservice', 'upload/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_), ''),
+neon.query.Connection.prototype.executeImport = function (importQuery, successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doPostJSON(
+        importQuery,
+        neon.serviceUrl('importservice', ''),
+        {
+            success: successCallback,
+            error: errorCallback
+        }
+    );
+
+    /*
+    neon.util.ajaxUtils.doPostBinary(data, neon.serviceUrl('importservice', serviceName + '/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_), ''),
         successCallback, errorCallback);
+    */
 };
 
 /**
@@ -559,6 +568,8 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
  * response as a parameter.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
+
+ /*
 neon.query.Connection.prototype.uploadData = function (uploadQuery, database, table, source, successCallback, errorCallback) {
     return neon.util.ajaxUtils.doPostJSON(
         uploadQuery,
@@ -568,4 +579,4 @@ neon.query.Connection.prototype.uploadData = function (uploadQuery, database, ta
             error: errorCallback
         }
     );
-};
+};*/
