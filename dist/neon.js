@@ -884,11 +884,6 @@ neon.query.Connection.prototype.executeImport = function (importQuery, successCa
             error: errorCallback
         }
     );
-
-    /*
-    neon.util.ajaxUtils.doPostBinary(data, neon.serviceUrl('importservice', serviceName + '/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_), ''),
-        successCallback, errorCallback);
-    */
 };
 
 /**
@@ -1246,18 +1241,6 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
  * response as a parameter.
  * @return {neon.util.AjaxRequest} The xhr request object
  */
-
- /*
-neon.query.Connection.prototype.uploadData = function (uploadQuery, database, table, source, successCallback, errorCallback) {
-    return neon.util.ajaxUtils.doPostJSON(
-        uploadQuery,
-        neon.serviceUrl('uploadData', database, table, source),
-        {
-            success: successCallback,
-            error: errorCallback
-        }
-    );
-};*/
 /**
  * Represents export parameters to be used when exporting data from a datasource to a file
  * @param hostName the host name where the datastore exists in
