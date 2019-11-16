@@ -870,16 +870,20 @@ neon.query.Connection.prototype.executeExport = function (exportQuery, successCa
 
 /**
  * Sends a file to be imported into a database and fires the callback when complete.
- * @method executeUploadFile
- * @param {FormData} data A FormData object containing the file to upload, as well as its type and a username and name of the database to upload it to.
+ * @method executeImport
+ * @param {neon.query.ImportQuery} importQuery contains source data and location where the data is imported to (database and table) 
  * @param {Function} successCallback The function to call when the request successfully completes. This function takes the server's response as a parameter.
  * @param {Function} errorCallback The function to call when an error occurs. This function takes the server's response as a parameter.
- * @param {String} [host] The host to upload a file to when you don't want to upload to the default.
- * @param {String} [databaseType] The type of database to upload a file to when you don't want the default.
  */
-neon.query.Connection.prototype.executeUploadFile = function (data, successCallback, errorCallback, host, databaseType) {
-    neon.util.ajaxUtils.doPostBinary(data, neon.serviceUrl('importservice', 'upload/' + encodeURIComponent(host || this.host_) + '/' + encodeURIComponent(databaseType || this.databaseType_), ''),
-        successCallback, errorCallback);
+neon.query.Connection.prototype.executeImport = function (importQuery, successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doPostJSON(
+        importQuery,
+        neon.serviceUrl('importservice', ''),
+        {
+            success: successCallback,
+            error: errorCallback
+        }
+    );
 };
 
 /**
@@ -1226,31 +1230,33 @@ neon.query.Connection.prototype.getFieldTypesForGroup = function (databaseToTabl
     );
 };
 
-/**
- * Returns the server status.
- */
-neon.query.getServerStatus = function (successCallback, errorCallback) {
-    return neon.util.ajaxUtils.doGet(
-        neon.serviceUrl('admin', 'status'), {
-            success: successCallback,
-            error: errorCallback,
-            responseType: 'json'
-        }
-    );
-};
 
 /**
+ * Executes the specified export request and fires the callback when complete.
+ * @method uploadData
+ * @param {neon.query.uploadData} uploadQuery the query to export data for
+ * @param {Function} successCallback The callback to fire when the export request successfully completes. Takes
+ * a JSON object with the export URL stored in it's data field as a parameter.
+ * @param {Function} [errorCallback] The optional callback when an error occurs. This function takes the server's
+ * response as a parameter.
+ * @return {neon.util.AjaxRequest} The xhr request object
+ */
+/**
  * Represents export parameters to be used when exporting data from a datasource to a file
+ * @param hostName the host name where the datastore exists in
+ * @param dataStoreType the data store type (elastic search, sql, etc)
+ * @param fileName the name of the file where the data is exported to.
+ * @param query query for pulling the data to export
+ * @param fieldNamePrettyNamePairs mapping of actual field names to user friendly field names
  * @class neon.query.exportQuery
  * @constructor
  */
-neon.query.ExportQuery = function() {
-
-    this.fileName = undefined;
-    this.dataStoreType = undefined;
-    this.hostName = undefined;
+neon.query.ExportQuery = function(hostName, dataStoreType, fileName, query, fieldNamePrettyNamePairs) {
+    this.hostName = hostName;
+    this.dataStoreType = dataStoreType;
+    this.fileName = fileName;
     this.query = new neon.query.Query();
-    this.fieldNamePrettyNamePairs = null;
+    this.fieldNamePrettyNamePairs = fieldNamePrettyNamePairs;
 };
 /**
  * Creates a filter that can be applied to a dataset
@@ -1327,6 +1333,35 @@ neon.query.Filter.getFilterState = function(databaseName, tableName, successCall
             responseType: 'json'
         }
     );
+};
+
+/**
+ * Creates an import that can be applied to a query.
+ * @param hostName the host name where the datastore exists in
+ * @param dataStoreType the data store type (elastic search, sql, etc)
+ * @param database The database of where the new data will be imported in to.
+ * @param table The table of where the new data will be imported in to.
+ * @param source The source content of the new data.
+ * @class neon.query.ImportQuery
+ * @constructor
+ */
+neon.query.ImportQuery = function(hostName, dataStoreType, database, table, source) {
+    this.hostName = hostName;
+    this.dataStoreType = dataStoreType;
+    this.database = database;
+    this.table = table;
+    this.source = source;
+};
+
+/**
+ * Adds parameters to the import
+ * @param {Object} params Parameters to set on the import.
+ * @return {neon.query.ImportQuery} This import object
+ * @method params
+ */
+neon.query.ImportQuery.prototype.params = function(params) {
+    this.params = params;
+    return this;
 };
 
 /**

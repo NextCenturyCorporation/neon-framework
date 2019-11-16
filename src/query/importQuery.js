@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Next Century Corporation
+ * Copyright 2013 Next Century Corporation
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,30 @@
  */
 
 /**
- * Represents export parameters to be used when exporting data from a datasource to a file
+ * Creates an import that can be applied to a query.
  * @param hostName the host name where the datastore exists in
  * @param dataStoreType the data store type (elastic search, sql, etc)
- * @param fileName the name of the file where the data is exported to.
- * @param query query for pulling the data to export
- * @param fieldNamePrettyNamePairs mapping of actual field names to user friendly field names
- * @class neon.query.exportQuery
+ * @param database The database of where the new data will be imported in to.
+ * @param table The table of where the new data will be imported in to.
+ * @param source The source content of the new data.
+ * @class neon.query.ImportQuery
  * @constructor
  */
-neon.query.ExportQuery = function(hostName, dataStoreType, fileName, query, fieldNamePrettyNamePairs) {
+neon.query.ImportQuery = function(hostName, dataStoreType, database, table, source) {
     this.hostName = hostName;
     this.dataStoreType = dataStoreType;
-    this.fileName = fileName;
-    this.query = new neon.query.Query();
-    this.fieldNamePrettyNamePairs = fieldNamePrettyNamePairs;
+    this.database = database;
+    this.table = table;
+    this.source = source;
+};
+
+/**
+ * Adds parameters to the import
+ * @param {Object} params Parameters to set on the import.
+ * @return {neon.query.ImportQuery} This import object
+ * @method params
+ */
+neon.query.ImportQuery.prototype.params = function(params) {
+    this.params = params;
+    return this;
 };

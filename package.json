@@ -1,6 +1,6 @@
 {
   "name": "neon-framework",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A client library for connecting to a Neon server",
   "license": "Apache-2.0",
   "repository": {
