@@ -1342,15 +1342,17 @@ neon.query.Filter.getFilterState = function(databaseName, tableName, successCall
  * @param database The database of where the new data will be imported in to.
  * @param table The table of where the new data will be imported in to.
  * @param source The source content of the new data.
+ * @param isNew flag to indicate if data is imported into a new table or an existing one
  * @class neon.query.ImportQuery
  * @constructor
  */
-neon.query.ImportQuery = function(hostName, dataStoreType, database, table, source) {
+neon.query.ImportQuery = function(hostName, dataStoreType, database, table, source, isNew) {
     this.hostName = hostName;
     this.dataStoreType = dataStoreType;
     this.database = database;
     this.table = table;
     this.source = source;
+    this.isNew = isNew;
 };
 
 /**
