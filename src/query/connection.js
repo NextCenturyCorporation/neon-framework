@@ -104,20 +104,6 @@ neon.query.Connection.prototype.executeQuery = function (query, successCallback,
 };
 
 /**
- * Executes the specified query group (a series of queries whose results are aggregate),
- * and fires the callback when complete.
- * @method executeQueryGroup
- * @param {neon.query.QueryGroup} queryGroup the query to execute
- * @param {Function} successCallback The callback to fire when the query successfully completes
- * @param {Function} [errorCallback] The optional callback when an error occurs. This is a 3 parameter function that
- * contains the xhr, a short error status and the full error message.
- * @return {neon.util.AjaxRequest} The xhr request object
- */
-neon.query.Connection.prototype.executeQueryGroup = function (queryGroup, successCallback, errorCallback) {
-    return this.executeQueryService_(queryGroup, successCallback, errorCallback, 'querygroup');
-};
-
-/**
  * Executes a query that returns a sorted list of key, count pairs for an array field in the database.
  * @method executeArrayCountQuery
  * @param {String} databaseName The name of the database
@@ -143,20 +129,6 @@ neon.query.Connection.prototype.executeArrayCountQuery = function (databaseName,
 
 neon.query.Connection.prototype.executeQueryService_ = function (query, successCallback, errorCallback, serviceName) {
     var opts = [];
-    if (query.ignoreFilters_) {
-        opts.push("ignoreFilters=true");
-    } else if (query.ignoredFilterIds_) {
-        var filterIds = [];
-        query.ignoredFilterIds_.forEach(function (id) {
-            filterIds.push("ignoredFilterIds=" + encodeURIComponent(id));
-        });
-        if (filterIds.length) {
-            opts.push(filterIds.join("&"));
-        }
-    }
-    if (query.selectionOnly_) {
-        opts.push("selectionOnly=true");
-    }
     return neon.util.ajaxUtils.doPostJSON(
         query,
         neon.serviceUrl('queryservice', serviceName + '/' + encodeURIComponent(this.host_) + '/' + encodeURIComponent(this.databaseType_), opts.join('&')),

@@ -25,21 +25,14 @@
  * @constructor
  */
 neon.query.Query = function() {
-    this.filter = new neon.query.Filter();
-    this.fields = ['*'];
-    this.aggregateArraysByElement = false;
-    this.ignoreFilters_ = false;
-    this.selectionOnly_ = false;
-
-    // use this to ignore specific filters
-    this.ignoredFilterIds_ = [];
-
-    this.groupByClauses = [];
     this.isDistinct = false;
-    this.aggregates = [];
-    this.sortClauses = [];
+    this.selectClause = new neon.query.SelectClause(undefined, undefined);
+    this.whereClause = undefined;
+    this.aggregateClauses = [];
+    this.groupByClauses = [];
+    this.orderByClauses = [];
     this.limitClause = undefined;
-    this.transforms = undefined;
+    this.offsetClause = undefined;
 };
 
 /**
@@ -48,23 +41,14 @@ neon.query.Query = function() {
  * @return {string}
  */
 neon.query.Query.prototype.toString = function() {
-    var s = " ";
-    this.fields.forEach(function(d) {
-        s = s + " SELECT " + d;
-    });
-    this.sortClauses.forEach(function(d) {
-        s = s + ", SORTBY " + d.fieldName + " (" + d.sortOrder + ")";
-    });
-    this.groupByClauses.forEach(function(d) {
-        s = s + ", GROUPBY " + d.field;
-    });
-    this.aggregates.forEach(function(d) {
-        s = s + ", AGGREGATE " + d.operation +  " ON " + d.field + " (named " + d.name + ")";
-    });
-    if(this.limitClause !== undefined) {
-        s = s + ", LIMIT " + this.limitClause.limit;
-    }
-    return s;
+    var fields = this.selectClause.fieldClauses.map((field) => field.databaseName + "." + field.tableName + "." + field.fieldName).join(", ");
+    return ("SELECT " + (this.selectClause.fieldClauses.length ? fields : "*" ) + " ") +
+        (" FROM " + this.selectClause.databaseName + "." + this.selectClause.tableName + " ") +
+        (this.whereClause ? ("WHERE " + this.whereClause.toString() + " ") : "") +
+        (this.aggregateClauses.length ? ("AGGREGATE " + this.aggregateClauses.map((agg) => agg.operation + " ON " + agg.field + " (NAMED " + agg.name + ")").join(", ") + " ") : "") +
+        (this.groupByClauses.length ? ("GROUP_BY " + this.groupByClauses.map((group) => group.field).join(", ") + " ") : "") +
+        (this.orderByClauses.length ? ("ORDER_BY " + this.orderByClauses.map((order) => order.fieldName + " (" + order.order + ")").join(", ") + " ") : "") +
+        (this.limitClause ? ("LIMIT " + this.limitClause.limit) : "");
 };
 
 /**
@@ -103,14 +87,14 @@ neon.query.MIN = 'min';
 neon.query.AVG = 'avg';
 
 /**
- * The sort parameter for clauses to sort ascending
+ * The order parameter for clauses to order ascending
  * @property ASCENDING
  * @type {int}
  */
 neon.query.ASCENDING = 1;
 
 /**
- * The sort parameter for clauses to sort descending
+ * The order parameter for clauses to order descending
  * @property DESCENDING
  * @type {int}
  */
@@ -187,25 +171,31 @@ neon.query.MILE = 'mile';
  * @return {neon.query.Query} This query object
  */
 neon.query.Query.prototype.selectFrom = function(databaseName, tableName) {
-    this.filter.selectFrom(databaseName, tableName);
+    this.selectClause.databaseName = databaseName;
+    this.selectClause.tableName = tableName;
     return this;
 };
 
 /**
- * Sets the fields that should be included in the result. If not specified,
- * all fields will be included (equivalent to SELECT *).
- * @method withFields
- * @param {...String | Array} fields A variable number of strings or single Array of Strings indicating which fields should be included
+ * Sets the *select* clause of the query to select data from the specified field
+ * @method selectField
+ * @param {String} databaseName
+ * @param {String} tableName
+ * @param {String} fieldName
  * @return {neon.query.Query} This query object
- * @example
- *     new neon.query.Query(...).withFields("field1","field2");
  */
-neon.query.Query.prototype.withFields = function(fields) {
-    if(arguments.length === 1 && $.isArray(fields)) {
-        this.fields = fields;
-    } else {
-        this.fields = neon.util.arrayUtils.argumentsToArray(arguments);
-    }
+neon.query.Query.prototype.selectField = function(databaseName, tableName, fieldName) {
+    this.selectClause.fieldClauses.push(new neon.query.FieldClause(databaseName, tableName, fieldName));
+    return this;
+};
+
+/**
+ * Removes the fields from the *select* clause of the query to select data from all fields
+ * @method selectAllFields
+ * @return {neon.query.Query} This query object
+ */
+neon.query.Query.prototype.selectAllFields = function() {
+    this.selectClause.fieldClauses = [];
     return this;
 };
 
@@ -229,7 +219,11 @@ neon.query.Query.prototype.withFields = function(fields) {
  * @return {neon.query.Query} This query object
  */
 neon.query.Query.prototype.where = function() {
-    this.filter.where.apply(this.filter, arguments);
+    if(arguments.length === 3) {
+        this.whereClause = neon.query.where(arguments[0], arguments[1], arguments[2]);
+    } else {
+        this.whereClause = arguments[0];
+    }
     return this;
 };
 
@@ -264,9 +258,9 @@ neon.query.Query.prototype.groupBy = function(fields) {
         // if the user provided a string or object with a columnName and prettyName, convert that to the groupBy
         // representation of a single field, otherwise, they provided a groupBy function so just use that
         if(typeof field === 'string') {
-            clause = new neon.query.GroupBySingleFieldClause(field, field);
+            clause = new neon.query.GroupByFieldClause(field, field);
         } else if(typeof field === 'object' && !(field instanceof neon.query.GroupByFunctionClause)) {
-            clause = new neon.query.GroupBySingleFieldClause(field.columnName, field.prettyName);
+            clause = new neon.query.GroupByFieldClause(field.columnName, field.prettyName);
         }
         me.groupByClauses.push(clause);
     });
@@ -286,7 +280,7 @@ neon.query.Query.prototype.groupBy = function(fields) {
  */
 neon.query.Query.prototype.aggregate = function(aggregationOperation, aggregationField, name) {
     var newFieldName = name != null ? name : (aggregationOperation + '(' + aggregationField + ')');
-    this.aggregates.push(new neon.query.FieldFunction(aggregationOperation, aggregationField, newFieldName));
+    this.aggregateClauses.push(new neon.query.AggregateClause(aggregationOperation, aggregationField, newFieldName));
     return this;
 };
 
@@ -326,19 +320,19 @@ neon.query.Query.prototype.offset = function(offset) {
  *
  * Configures the query results to be sorted by the specified field(s). To sort by multiple fields, repeat the
  * 2 parameters multiple times
- * @method sortBy
+ * @method orderBy
  * @param {String | Array} fieldName The name of the field to sort on OR single array in the form
  * of ['field1', neon.query.ASC, ... , 'fieldN', neon.query.DESC]
- * @param {int} sortOrder The sort order (see the constants in this class)
+ * @param {int} order The sort order (see the constants in this class)
  * @return {neon.query.Query} This query object
  * @example
- *     new neon.query.Query(...).sortBy('field1',neon.query.ASC,'field2',neon.query.DESC);
+ *     new neon.query.Query(...).orderBy('field1',neon.query.ASC,'field2',neon.query.DESC);
  */
-neon.query.Query.prototype.sortBy = function(fields) {
-    // even though internally each sortBy clause is a separate object, the user will think about a single sortBy
+neon.query.Query.prototype.orderBy = function(fields) {
+    // even though internally each orderBy clause is a separate object, the user will think about a single orderBy
     // operation which may include multiple fields, so this method does not append to the existing
-    // sortBy fields, but replaces them
-    this.sortClauses.length = 0;
+    // orderBy fields, but replaces them
+    this.orderByClauses.length = 0;
 
     var list;
     if(arguments.length === 1 && $.isArray(fields)) {
@@ -350,90 +344,8 @@ neon.query.Query.prototype.sortBy = function(fields) {
     for(var i = 1; i < list.length; i += 2) {
         var field = list[i - 1];
         var order = list[i];
-        this.sortClauses.push(new neon.query.SortClause(field, order));
+        this.orderByClauses.push(new neon.query.OrderByClause(field, order));
     }
-    return this;
-};
-
-/**
- * Adds a transform to this query
- * @method transform
- * @param {neon.query.Transform} transformObj a transform to be applied to the data
- * @return {neon.query.Query} This query object
- */
-neon.query.Query.prototype.transform = function(transformObj) {
-    var transforms;
-    if(arguments.length === 1 && $.isArray(transformObj)) {
-        transforms = transformObj;
-    } else {
-        transforms = neon.util.arrayUtils.argumentsToArray(arguments);
-    }
-
-    this.transforms = transforms;
-    return this;
-};
-
-/**
- * Sets the query to ignore any filters that are currently applied
- * @method ignoreFilters
- * @param {...String | Array} [filterIds] An optional, variable number of filter ids to ignore OR an array of
- * filter ids to ignore. If specified, only these filters will be ignored. Otherwise, all will be ignored.
- * @return {neon.query.Query} This query object
- */
-neon.query.Query.prototype.ignoreFilters = function(filterIds) {
-    var filters;
-    if(arguments.length === 1 && $.isArray(filterIds)) {
-        filters = filterIds;
-    } else {
-        filters = neon.util.arrayUtils.argumentsToArray(arguments);
-    }
-
-    if(filters.length > 0) {
-        this.ignoredFilterIds_ = filters;
-    } else {
-        this.ignoreFilters_ = true;
-    }
-    return this;
-};
-
-/**
- * Sets the query to return just the current selection
- * @method selectionOnly
- * @return {neon.query.Query} This query object
- */
-neon.query.Query.prototype.selectionOnly = function() {
-    this.selectionOnly_ = true;
-    return this;
-};
-
-neon.query.Query.prototype.enableAggregateArraysByElement = function() {
-    this.aggregateArraysByElement = true;
-    return this;
-};
-
-neon.query.Query.prototype.geoIntersection = function(locationField, points, geometryType) {
-    this.filter.geoIntersection(locationField, points, geometryType);
-    return this;
-};
-
-neon.query.Query.prototype.geoWithin = function(locationField, points) {
-    this.filter.geoWithin(locationField, points);
-    return this;
-};
-
-/**
- * Adds a query clause to specify that query results must be within the specified distance from
- * the center point. This is used instead of a *where* query clause (or in conjuction with where
- * clauses in boolean operators).
- * @method withinDistance
- * @param {String} locationField The name of the field containing the location value
- * @param {neon.util.LatLon} center The point from which the distance is measured
- * @param {double} distance The maximum distance from the center point a result must be within to be returned in the query
- * @param {String} distanceUnit The unit of measure for the distance. See the constants in this class.
- * @return {neon.query.Query} This query object
- */
-neon.query.Query.prototype.withinDistance = function(locationField, center, distance, distanceUnit) {
-    this.filter.withinDistance(locationField, center, distance, distanceUnit);
     return this;
 };
 
@@ -454,7 +366,7 @@ neon.query.Query.prototype.withinDistance = function(locationField, center, dist
  * @return {Object}
  */
 neon.query.where = function(fieldName, op, value) {
-    return new neon.query.WhereClause(fieldName, op, value);
+    return new neon.query.SingularWhereClause(fieldName, op, value);
 };
 
 /**
@@ -467,9 +379,9 @@ neon.query.where = function(fieldName, op, value) {
  */
 neon.query.and = function(clauses) {
     if(arguments.length === 1 && $.isArray(clauses)) {
-        return new neon.query.BooleanClause('and', clauses);
+        return new neon.query.CompoundWhereClause('and', clauses);
     } else {
-        return new neon.query.BooleanClause('and', neon.util.arrayUtils.argumentsToArray(arguments));
+        return new neon.query.CompoundWhereClause('and', neon.util.arrayUtils.argumentsToArray(arguments));
     }
 };
 
@@ -483,24 +395,10 @@ neon.query.and = function(clauses) {
  */
 neon.query.or = function(clauses) {
     if(arguments.length === 1 && $.isArray(clauses)) {
-        return new neon.query.BooleanClause('or', clauses);
+        return new neon.query.CompoundWhereClause('or', clauses);
     } else {
-        return new neon.query.BooleanClause('or', neon.util.arrayUtils.argumentsToArray(arguments));
+        return new neon.query.CompoundWhereClause('or', neon.util.arrayUtils.argumentsToArray(arguments));
     }
-};
-
-/**
- * Creates a query clause to specify that query results must be within the specified distance from
- * the center point.
- * @method withinDistance
- * @param {String} locationField The name of the field containing the location value
- * @param {neon.util.LatLon} center The point from which the distance is measured
- * @param {double} distance The maximum distance from the center point a result must be within to be returned in the query
- * @param {String} distanceUnit The unit of measure for the distance. See the constants in this class.
- * @return {neon.query.WithinDistanceClause}
- */
-neon.query.withinDistance = function(locationField, center, distance, distanceUnit) {
-    return new neon.query.WithinDistanceClause(locationField, center, distance, distanceUnit);
 };
 
 /**
@@ -510,11 +408,11 @@ neon.query.withinDistance = function(locationField, center, distance, distanceUn
  * @param {String} operation The name of the operation to perform
  * @param {String} field The name of the field to perform the operation on
  * @param {String} name The name of the field created by performing this operation
- * @class neon.query.FieldFunction
+ * @class neon.query.AggregateClause
  * @constructor
  * @private
  */
-neon.query.FieldFunction = function(operation, field, name) {
+neon.query.AggregateClause = function(operation, field, name) {
     this.operation = operation;
     this.field = field;
     this.name = name;
@@ -531,33 +429,43 @@ neon.query.FieldFunction = function(operation, field, name) {
  */
 neon.query.GroupByFunctionClause = function(operation, field, name) {
     this.type = 'function';
-    neon.query.FieldFunction.call(this, operation, field, name);
+    this.operation = operation;
+    this.field = field;
+    this.name = name;
 };
-// TODO: NEON-73 (Javascript inheritance library)
-neon.query.GroupByFunctionClause.prototype = new neon.query.FieldFunction();
 
 // These are not meant to be instantiated directly but rather by helper methods
-neon.query.GroupBySingleFieldClause = function(field, prettyField) {
+neon.query.GroupByFieldClause = function(field, prettyField) {
     this.type = 'single';
     this.field = field;
     this.prettyField = ((prettyField.indexOf(".") >= 0) ? prettyField.replace(/\./g, "->") : prettyField);
 };
 
-neon.query.BooleanClause = function(type, whereClauses) {
+neon.query.CompoundWhereClause = function(type, whereClauses) {
     this.type = type;
     this.whereClauses = whereClauses;
 };
 
-neon.query.WhereClause = function(lhs, operator, rhs) {
+neon.query.CompoundWhereClause.prototype.toString = function() {
+    return this.type.toUpperCase() + " (" + this.whereClauses.map((where) => where.toString()).join(", ") + ")";
+}
+
+neon.query.SingularWhereClause = function(lhs, operator, rhs) {
     this.type = 'where';
     this.lhs = lhs;
     this.operator = operator;
     this.rhs = rhs;
 };
 
-neon.query.SortClause = function(fieldName, sortOrder) {
-    this.fieldName = fieldName;
-    this.sortOrder = sortOrder;
+neon.query.SingularWhereClause.prototype.toString = function() {
+    return this.lhs + " " + this.operator + " " + this.rhs;
+}
+
+neon.query.OrderByClause = function(databaseName, tableName, fieldName, order) {
+    this.database = databaseName;
+    this.table = tableName;
+    this.field = fieldName;
+    this.order = order;
 };
 
 neon.query.LimitClause = function(limit) {
@@ -568,23 +476,15 @@ neon.query.OffsetClause = function(offset) {
     this.offset = offset;
 };
 
-neon.query.WithinDistanceClause = function(locationField, center, distance, distanceUnit) {
-    this.type = 'withinDistance';
-    this.locationField = locationField;
-    this.center = center;
-    this.distance = distance;
-    this.distanceUnit = distanceUnit;
+neon.query.SelectClause = function(databaseName, tableName) {
+    this.databaseName = databaseName;
+    this.tableName = tableName;
+    this.fieldClauses = [];
 };
 
-neon.query.intersectionClause = function(locationField, points, geometryType) {
-    this.type = "geoIntersection";
-    this.locationField = locationField;
-    this.points = points;
-    this.geometryType = geometryType;
+neon.query.FieldClause = function(databaseName, tableName, fieldName) {
+    this.databaseName = databaseName;
+    this.tableName = tableName;
+    this.fieldName = fieldName;
 };
 
-neon.query.withinClause = function(locationField, points) {
-    this.type = "geoIntersection";
-    this.locationField = locationField;
-    this.points = points;
-};
