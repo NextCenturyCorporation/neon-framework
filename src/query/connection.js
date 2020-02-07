@@ -181,6 +181,24 @@ neon.query.Connection.prototype.executeImport = function (importQuery, successCa
 };
 
 /**
+ * Executes a data mutation by ID.
+ * @method executeMutateById
+ * @param {neon.query.MutateQuery} mutateQuery contains source data and location where the data is imported to (database and table) 
+ * @param {Function} successCallback The function to call when the request successfully completes. This function takes the server's response as a parameter.
+ * @param {Function} errorCallback The function to call when an error occurs. This function takes the server's response as a parameter.
+ */
+neon.query.Connection.prototype.executeMutateById = function (mutateQuery, successCallback, errorCallback) {
+    return neon.util.ajaxUtils.doPostJSON(
+        mutateQuery,
+        neon.serviceUrl('mutateservice', 'byid'),
+        {
+            success: successCallback,
+            error: errorCallback
+        }
+    );
+};
+
+/**
  * Checks on the status of a type-guessing operation with the given uuid and fires the callback when complete.
  * @method executeCheckTypeGuesses
  * @param {String} uuid The uuid associated with the type-guessing operation to check on.
